@@ -9,14 +9,32 @@ if ! command -v wasm-pack &> /dev/null; then
     curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 fi
 
+# Check if cargo is available
+if ! command -v cargo &> /dev/null; then
+    echo "❌ Rust/Cargo is not installed. Please install Rust first:"
+    echo "   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    exit 1
+fi
+
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."
 rm -rf pkg/
 rm -rf target/
 
+# Ensure correct file structure
+if [ ! -f "src/lib.rs" ]; then
+    echo "❌ src/lib.rs not found. Please run fix_structure.sh first."
+    exit 1
+fi
+
+if [ ! -f "math_expression.pest" ]; then
+    echo "❌ math_expression.pest not found in root directory."
+    exit 1
+fi
+
 # Build the WASM package
 echo "🔧 Building WASM package..."
-wasm-pack build --target web --out-dir pkg --dev
+wasm-pack build --target web --out-dir pkg
 
 # Check if build was successful
 if [ $? -eq 0 ]; then
@@ -35,6 +53,11 @@ if [ $? -eq 0 ]; then
     echo "   - VS Code: Live Server extension"
 else
     echo "❌ Build failed!"
+    echo ""
+    echo "🔍 Common issues:"
+    echo "   - Make sure all dependencies are in Cargo.toml"
+    echo "   - Check that math_expression.pest is in the root directory"
+    echo "   - Verify all Rust files are in src/ directory"
     exit 1
 fi
 
