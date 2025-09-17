@@ -1,0 +1,96 @@
+// Mathematical Expression Grammar for Formulation Models
+WHITESPACE = _{ " " | "\t" | "\n" }
+
+// Numbers (integers and floats)
+number = @{ 
+    "-"? ~ (
+        "0" | 
+        (ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+    ) ~ 
+    ("." ~ ASCII_DIGIT+)? ~
+    (("e" | "E") ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+}
+
+// Variable names (for ingredients, nutrients, coefficients)
+identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+// Mathematical operators
+add = { "+" }
+subtract = { "-" }
+multiply = { "*" }
+divide = { "/" }
+power = { "^" | "**" }
+modulo = { "%" }
+
+// Comparison operators
+eq = { "==" }
+ne = { "!=" }
+lt = { "<" }
+le = { "<=" }
+gt = { ">" }
+ge = { ">=" }
+
+// Logical operators
+and = { "&&" | "and" }
+or = { "||" | "or" }
+not = { "!" | "not" }
+
+// Function calls (sin, cos, log, min, max, etc.)
+function_name = @{ 
+    "sin" | "cos" | "tan" | "asin" | "acos" | "atan" |
+    "log" | "ln" | "exp" | "sqrt" | "abs" | "ceil" | "floor" |
+    "min" | "max" | "pow" | "round" |
+    // Formulation-specific functions
+    "nutritional_value" | "cost_per_unit" | "digestibility" |
+    "bioavailability" | "interaction_factor"
+}
+
+function_call = { function_name ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
+
+// Array/vector access
+array_access = { identifier ~ "[" ~ expression ~ "]" }
+
+// Conditional expressions
+conditional = { "if" ~ "(" ~ expression ~ ")" ~ expression ~ "else" ~ expression }
+
+// Primary expressions (lowest precedence)
+primary = _{
+    number |
+    function_call |
+    array_access |
+    conditional |
+    identifier |
+    "(" ~ expression ~ ")"
+}
+
+// Unary expressions
+unary = { (not | subtract)? ~ primary }
+
+// Power (right associative)
+power_expr = { unary ~ (power ~ unary)* }
+
+// Multiplicative operations
+multiplicative = { power_expr ~ ((multiply | divide | modulo) ~ power_expr)* }
+
+// Additive operations
+additive = { multiplicative ~ ((add | subtract) ~ multiplicative)* }
+
+// Comparison operations
+comparison = { additive ~ ((eq | ne | le | ge | lt | gt) ~ additive)* }
+
+// Logical AND
+logical_and = { comparison ~ (and ~ comparison)* }
+
+// Logical OR (highest precedence)
+logical_or = { logical_and ~ (or ~ logical_and)* }
+
+// Main expression rule
+expression = { logical_or }
+
+// Complete mathematical model (can contain multiple expressions/assignments)
+assignment = { identifier ~ "=" ~ expression }
+statement = { assignment | expression }
+model = { SOI ~ (statement ~ (";" ~ statement)*)? ~ EOI }
+
+// Entry point
+math_input = { SOI ~ (model | expression) ~ EOI }
