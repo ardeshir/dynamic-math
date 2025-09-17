@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Mathematical Compilation Platform</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h3 {
+            margin-top: 0;
+            color: #2d3748;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            transition: border-color 0.2s ease;
+        }
+        
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        
+        .result.success {
+            background: #f0fff4;
+            border: 2px solid #68d391;
+            color: #22543d;
+        }
+        
+        .result.error {
+            background: #fed7d7;
+            border: 2px solid #fc8181;
+            color: #742a2a;
+        }
+        
+        .result.info {
+            background: #ebf8ff;
+            border: 2px solid #63b3ed;
+            color: #2a4365;
+        }
+        
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .example {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .example:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+        
+        .example h4 {
+            margin: 0 0 8px 0;
+            color: #4a5568;
+        }
+        
+        .example code {
+            display: block;
+            background: #f7fafc;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2d3748;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .model-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+        }
+        
+        .model-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .model-item:last-child {
+            border-bottom: none;
+        }
+        
+        .model-info {
+            flex: 1;
+        }
+        
+        .model-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .model-expression {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            color: #718096;
+        }
+        
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .status.loading {
+            background: #667eea;
+        }
+        
+        .status.ready {
+            background: #48bb78;
+        }
+        
+        .status.error {
+            background: #f56565;
+        }
+    </style>
+</head>
+<body>
+    <div id="status" class="status loading">Loading WASM...</div>
+    
+    <div class="container">
+        <h1>🧮 Dynamic Mathematical Compilation Platform</h1>
+        <p class="subtitle">Compile mathematical expressions to WebAssembly in real-time</p>
+        
+        <!-- Expression Input Section -->
+        <div class="section">
+            <h3>📝 Mathematical Expression Editor</h3>
+            
+            <div class="input-group">
+                <label for="expression">Mathematical Expression:</label>
+                <textarea 
+                    id="expression" 
+                    rows="3" 
+                    placeholder="Enter your mathematical expression (e.g., x^2 + sin(y) * 3.14)"
+                >x^2 + y^2</textarea>
+            </div>
+            
+            <div class="input-group">
+                <label for="variables">Variables (comma-separated):</label>
+                <input type="text" id="variables" placeholder="x, y, z" value="x, y">
+            </div>
+            
+            <button onclick="validateExpression()">Validate Expression</button>
+            <button onclick="compileExpression()">Compile to WASM</button>
+            <button onclick="quickTest()">Quick Test</button>
+            
+            <div id="validation-result"></div>
+        </div>
+        
+        <!-- Model Testing Section -->
+        <div class="section">
+            <h3>🚀 Model Execution</h3>
+            
+            <div class="input-group">
+                <label for="model-select">Select Model:</label>
+                <select id="model-select">
+                    <option value="">-- Select a compiled model --</option>
+                </select>
+            </div>
+            
+            <div id="variable-inputs"></div>
+            
+            <button onclick="executeModel()">Execute Model</button>
+            <button onclick="benchmarkModel()">Performance Benchmark</button>
+            
+            <div id="execution-result"></div>
+        </div>
+        
+        <!-- Example Expressions -->
+        <div class="section">
+            <h3>💡 Example Expressions</h3>
+            <p>Click on any example to load it into the editor:</p>
+            
+            <div class="examples">
+                <div class="example" onclick="loadExample('x^2 + y^2', 'x, y')">
+                    <h4>Pythagorean Distance</h4>
+                    <code>x^2 + y^2</code>
+                </div>
+                
+                <div class="example" onclick="loadExample('sin(x) * cos(y) + exp(-x^2)', 'x, y')">
+                    <h4>Trigonometric with Gaussian</h4>
+                    <code>sin(x) * cos(y) + exp(-x^2)</code>
+                </div>
+                
+                <div class="example" onclick="loadExample('if(x > 0) sin(x) else cos(x)', 'x')">
+                    <h4>Conditional Function</h4>
+                    <code>if(x > 0) sin(x) else cos(x)</code>
+                </div>
+                
+                <div class="example" onclick="loadExample('sqrt(abs(x)) + log(max(y, 0.1))', 'x, y')">
+                    <h4>Complex Mathematical</h4>
+                    <code>sqrt(abs(x)) + log(max(y, 0.1))</code>
+                </div>
+                
+                <div class="example" onclick="loadExample('nutritional_value(protein, carbs)', 'protein, carbs')">
+                    <h4>Formulation Function</h4>
+                    <code>nutritional_value(protein, carbs)</code>
+                </div>
+                
+                <div class="example" onclick="loadExample('pow(x, 3) - 2*pow(x, 2) + x - 1', 'x')">
+                    <h4>Polynomial</h4>
+                    <code>pow(x, 3) - 2*pow(x, 2) + x - 1</code>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Model Management -->
+        <div class="section">
+            <h3>📋 Compiled Models</h3>
+            <button onclick="refreshModelList()">Refresh List</button>
+            <button onclick="clearAllModels()">Clear All Models</button>
+            
+            <div id="model-list" class="model-list">
+                <p>No models compiled yet.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import init, { 
+            MathCompilerPlatform, 
+            set_panic_hook,
+            version,
+            supported_features
+        } from './pkg/math_compiler_wasm.js';
+        
+        let mathPlatform = null;
+        let currentModelId = null;
+        
+        // Initialize the WASM module
+        async function initializeWasm() {
+            try {
+                await init();
+                set_panic_hook();
+                mathPlatform = new MathCompilerPlatform();
+                
+                updateStatus('ready', 'Ready');
+                console.log('Math Compiler Platform initialized!');
+                console.log('Version:', version());
+                console.log('Supported features:', supported_features());
+                
+                // Enable UI
+                document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+            } catch (error) {
+                console.error('Failed to initialize WASM:', error);
+                updateStatus('error', 'Failed to load');
+            }
+        }
+        
+        function updateStatus(type, message) {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            
+            if (type === 'ready') {
+                setTimeout(() => {
+                    status.style.opacity = '0';
+                    setTimeout(() => status.style.display = 'none', 300);
+                }, 2000);
+            }
+        }
+        
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${type}">${message}</div>`;
+        }
+        
+        window.validateExpression = function() {
+            if (!mathPlatform) return;
+            
+            const expression = document.getElementById('expression').value.trim();
+            if (!expression) {
+                showResult('validation-result', 'Please enter an expression', 'error');
+                return;
+            }
+            
+            try {
+                const result = mathPlatform.validate_expression(expression);
+                if (result.valid) {
+                    showResult('validation-result', `✅ Expression is valid!\n\nParsed AST:\n${JSON.stringify(result.ast, null, 2)}`, 'success');
+                } else {
+                    showResult('validation-result', `❌ Expression is invalid:\n${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult('validation-result', `❌ Validation error:\n${error}`, 'error');
+            }
+        };
+        
+        window.compileExpression = function() {
+            if (!mathPlatform) return;
+            
+            const expression = document.getElementById('expression').value.trim();
+            const variablesStr = document.getElementById('variables').value.trim();
+            
+            if (!expression) {
+                showResult('validation-result', 'Please enter an expression', 'error');
+                return;
+            }
+            
+            const variables = variablesStr.split(',').map(v => v.trim()).filter(v => v);
+            if (variables.length === 0) {
+                showResult('validation-result', 'Please enter at least one variable', 'error');
+                return;
+            }
+            
+            try {
+                const modelId = `model_${Date.now()}`;
+                const modelName = `User Model ${new Date().toLocaleTimeString()}`;
+                
+                const result = mathPlatform.compile_model(modelId, modelName, expression, variables);
+                currentModelId = modelId;
+                
+                showResult('validation-result', `✅ Successfully compiled model!\n\nModel ID: ${modelId}\nExpression: ${expression}\nVariables: ${variables.join(', ')}\nWASM Size: ${result.wasm_bytes.length} bytes`, 'success');
+                
+                // Load the model automatically
+                mathPlatform.load_model(modelId);
+                refreshModelList();
+                updateVariableInputs(variables);
+                
+            } catch (error) {
+                showResult('validation-result', `❌ Compilation error:\n${error}`, 'error');
+            }
+        };
+        
+        window.quickTest = function() {
+            if (!mathPlatform) return;
+            
+            const expression = document.getElementById('expression').value.trim();
+            if (!expression) {
+                showResult('validation-result', 'Please enter an expression', 'error');
+                return;
+            }
+            
+            try {
+                // Test with default values
+                const result = mathPlatform.test_expression(expression, 3.0, 4.0);
+                showResult('validation-result', `✅ Quick Test Result:\nExpression: ${expression}\nWith x=3, y=4\nResult: ${result}`, 'success');
+            } catch (error) {
+                showResult('validation-result', `❌ Quick test error:\n${error}`, 'error');
+            }
+        };
+        
+        window.executeModel = function() {
+            if (!mathPlatform) return;
+            
+            const modelSelect = document.getElementById('model-select');
+            const modelId = modelSelect.value;
+            
+            if (!modelId) {
+                showResult('execution-result', 'Please select a model', 'error');
+                return;
+            }
+            
+            try {
+                const modelInfo = mathPlatform.get_model_info(modelId);
+                const variables = modelInfo.variables;
+                
+                // Get input values
+                const inputs = [];
+                for (let i = 0; i < variables.length; i++) {
+                    const inputElement = document.getElementById(`var_${i}`);
+                    const value = parseFloat(inputElement.value || '0');
+                    inputs.push(value);
+                }
+                
+                const result = mathPlatform.execute_model(modelId, inputs);
+                
+                let inputStr = variables.map((name, i) => `${name}=${inputs[i]}`).join(', ');
+                showResult('execution-result', `✅ Execution Result:\nModel: ${modelInfo.name}\nInputs: ${inputStr}\nResult: ${result}`, 'success');
+                
+            } catch (error) {
+                showResult('execution-result', `❌ Execution error:\n${error}`, 'error');
+            }
+        };
+        
+        window.benchmarkModel = function() {
+            if (!mathPlatform) return;
+            
+            const modelSelect = document.getElementById('model-select');
+            const modelId = modelSelect.value;
+            
+            if (!modelId) {
+                showResult('execution-result', 'Please select a model', 'error');
+                return;
+            }
+            
+            try {
+                const modelInfo = mathPlatform.get_model_info(modelId);
+                const variables = modelInfo.variables;
+                
+                // Get input values
+                const inputs = [];
+                for (let i = 0; i < variables.length; i++) {
+                    const inputElement = document.getElementById(`var_${i}`);
+                    const value = parseFloat(inputElement.value || '1');
+                    inputs.push(value);
+                }
+                
+                // Benchmark: run 10000 times
+                const iterations = 10000;
+                const startTime = performance.now();
+                
+                for (let i = 0; i < iterations; i++) {
+                    mathPlatform.execute_model(modelId, inputs);
+                }
+                
+                const endTime = performance.now();
+                const totalTime = endTime - startTime;
+                const avgTime = totalTime / iterations;
+                const execPerSec = 1000 / avgTime;
+                
+                let inputStr = variables.map((name, i) => `${name}=${inputs[i]}`).join(', ');
+                showResult('execution-result', `🚀 Performance Benchmark:\nModel: ${modelInfo.name}\nInputs: ${inputStr}\nIterations: ${iterations}\nTotal Time: ${totalTime.toFixed(2)}ms\nAverage Time: ${avgTime.toFixed(4)}ms\nExecutions/Second: ${execPerSec.toFixed(0)}`, 'info');
+                
+            } catch (error) {
+                showResult('execution-result', `❌ Benchmark error:\n${error}`, 'error');
+            }
+        };
+        
+        window.loadExample = function(expression, variables) {
+            document.getElementById('expression').value = expression;
+            document.getElementById('variables').value = variables;
+            
+            // Auto-validate the loaded example
+            setTimeout(validateExpression, 100);
+        };
+        
+        window.refreshModelList = function() {
+            if (!mathPlatform) return;
+            
+            try {
+                const models = mathPlatform.list_models();
+                const modelList = document.getElementById('model-list');
+                const modelSelect = document.getElementById('model-select');
+                
+                // Clear existing options (except first)
+                modelSelect.innerHTML = '<option value="">-- Select a compiled model --</option>';
+                
+                if (models.length === 0) {
+                    modelList.innerHTML = '<p>No models compiled yet.</p>';
+                    return;
+                }
+                
+                let listHtml = '';
+                models.forEach(model => {
+                    listHtml += `
+                        <div class="model-item">
+                            <div class="model-info">
+                                <div class="model-name">${model.name} (${model.id})</div>
+                                <div class="model-expression">${model.expression}</div>
+                                <div class="model-expression">Variables: ${model.variables.join(', ')}</div>
+                            </div>
+                            <button onclick="removeModel('${model.id}')" style="background: #f56565;">Remove</button>
+                        </div>
+                    `;
+                    
+                    // Add to select dropdown
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = `${model.name} - ${model.expression}`;
+                    modelSelect.appendChild(option);
+                });
+                
+                modelList.innerHTML = listHtml;
+            } catch (error) {
+                console.error('Error refreshing model list:', error);
+            }
+        };
+        
+        window.removeModel = function(modelId) {
+            if (!mathPlatform) return;
+            
+            try {
+                mathPlatform.remove_model(modelId);
+                refreshModelList();
+                
+                // Clear model select if this was the selected model
+                const modelSelect = document.getElementById('model-select');
+                if (modelSelect.value === modelId) {
+                    modelSelect.value = '';
+                    updateVariableInputs([]);
+                }
+                
+            } catch (error) {
+                console.error('Error removing model:', error);
+            }
+        };
+        
+        window.clearAllModels = function() {
+            if (!mathPlatform) return;
+            
+            try {
+                const models = mathPlatform.list_models();
+                models.forEach(model => mathPlatform.remove_model(model.id));
+                refreshModelList();
+                updateVariableInputs([]);
+            } catch (error) {
+                console.error('Error clearing models:', error);
+            }
+        };
+        
+        function updateVariableInputs(variables) {
+            const container = document.getElementById('variable-inputs');
+            
+            if (variables.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '<div class="input-group"><label>Variable Values:</label>';
+            variables.forEach((varName, index) => {
+                html += `
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: inline; margin-right: 10px; font-weight: normal;">${varName}:</label>
+                        <input type="text" id="var_${index}" value="1.0" style="width: 100px; display: inline;">
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+        }
+        
+        // Model selection change handler
+        document.getElementById('model-select').addEventListener('change', function() {
+            const modelId = this.value;
+            if (modelId && mathPlatform) {
+                try {
+                    const modelInfo = mathPlatform.get_model_info(modelId);
+                    updateVariableInputs(modelInfo.variables);
+                } catch (error) {
+                    console.error('Error getting model info:', error);
+                }
+            } else {
+                updateVariableInputs([]);
+            }
+        });
+        
+        // Initialize on page load
+        initializeWasm();
+    </script>
+</body>
+</html>
