@@ -55,8 +55,8 @@ A revolutionary client-side mathematical expression compiler that transforms use
 
 1. **Clone and build the project:**
 ```bash
-git clone <repository-url>
-cd math-compiler-platform
+git clone <repository-url: https://github.com/ardeshir/dynamic-math>
+cd dynamic-math
 chmod +x build.sh
 ./build.sh
 ```
